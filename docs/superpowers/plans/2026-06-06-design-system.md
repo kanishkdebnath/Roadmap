@@ -20,7 +20,7 @@
 
 ```
 app/build.gradle.kts                                  (modify: minSdk 26)
-app/src/main/res/font/inter_*.ttf                     (create: bundled Inter weights)
+app/src/main/res/font/inter_variable.ttf              (create: bundled Inter variable font)
 app/src/main/java/com/example/roadmap/ui/theme/
     Color.kt        (replace: brand tokens, light/dark, RoadmapColors)
     Type.kt         (replace: Inter Typography + tabular numerals)
@@ -70,38 +70,34 @@ git commit -m "build: raise minSdk to 26 for native java.time and fonts"
 
 ---
 
-## Task 2: Bundle the Inter font family
+## Task 2: Bundle the Inter font (variable font, offline)
 
-**Files:** Create `app/src/main/res/font/inter_regular.ttf`, `inter_medium.ttf`, `inter_semibold.ttf`, `inter_bold.ttf`, `inter_extrabold.ttf`
+**Files:** Create `app/src/main/res/font/inter_variable.ttf`
 
-> Bundling keeps the app offline-first (spec §10). Fetching at *build* time is fine; only *runtime* must be network-free. Android `res/font` filenames must be lowercase, digits, underscores only.
+> Bundling keeps the app offline-first (spec §10). Fetching at *build* time is fine; only *runtime* must be network-free. `minSdk 26` supports variable fonts, so **one** file covers every weight via the `wght` axis. `res/font` filenames must be lowercase, digits, underscores only. (The Google Fonts URL below was verified reachable during planning; the rsms static URLs were not.)
 
-- [ ] **Step 1: Download the five static Inter weights into res/font**
+- [ ] **Step 1: Download the Inter variable font into res/font**
 
-Run (Google Fonts static TTFs; stable raw URLs):
+Run:
 ```bash
 mkdir -p app/src/main/res/font
-base="https://github.com/google/fonts/raw/main/ofl/inter"
-curl -fL "$base/Inter%5Bopsz,wght%5D.ttf" -o /tmp/inter-variable.ttf
-# Derive static instances with fonttools if available; otherwise fetch known static mirrors:
-for pair in "Regular:inter_regular" "Medium:inter_medium" "SemiBold:inter_semibold" "Bold:inter_bold" "ExtraBold:inter_extrabold"; do
-  w="${pair%%:*}"; f="${pair##*:}"
-  curl -fL "https://raw.githubusercontent.com/rsms/inter/master/docs/font-files/Inter-${w}.ttf" -o "app/src/main/res/font/${f}.ttf"
-done
-ls -la app/src/main/res/font/
+curl -fL "https://github.com/google/fonts/raw/main/ofl/inter/Inter%5Bopsz,wght%5D.ttf" \
+  -o app/src/main/res/font/inter_variable.ttf
+file app/src/main/res/font/inter_variable.ttf
+ls -l app/src/main/res/font/inter_variable.ttf
 ```
-Expected: five non-empty `.ttf` files. (If a URL 404s, download Inter from https://github.com/rsms/inter/releases, copy `extras/ttf/Inter-{Regular,Medium,SemiBold,Bold,ExtraBold}.ttf` to the five target names.)
+Expected: a single ~800 KB+ file reported as `TrueType Font data`. If the URL fails, report BLOCKED — do not substitute `FontFamily.Default` (the spec mandates Inter).
 
-- [ ] **Step 2: Verify the files are valid TrueType**
+- [ ] **Step 2: Verify it is a valid font**
 
-Run: `file app/src/main/res/font/inter_regular.ttf`
+Run: `file app/src/main/res/font/inter_variable.ttf`
 Expected: contains `TrueType` (or `OpenType`).
 
 - [ ] **Step 3: Commit**
 
 ```bash
-git add app/src/main/res/font
-git commit -m "design: bundle Inter font weights (offline)"
+git add app/src/main/res/font/inter_variable.ttf
+git commit -m "design: bundle Inter variable font (offline)"
 ```
 
 ---
@@ -162,7 +158,7 @@ internal object LightTokens {
     val primary = Brand
     val onPrimary = Color(0xFFFFFFFF)
     val ringTrack = Color(0xFFE4ECE7)
-    val done = Color(0xFF059669)
+    val done = Color(0xFF047857)
     val doneContainer = Color(0xFFE2F3EC)
     val overdue = Color(0xFFDC2626)
     val overdueContainer = Color(0xFFFBE8E8)
@@ -223,7 +219,7 @@ import androidx.compose.ui.graphics.SolidColor
 
 /** Bespoke tokens that Material 3's ColorScheme has no slot for. */
 @Immutable
-data class RoadmapColors(
+class RoadmapColors(
     val ringTrack: Color,
     val done: Color,
     val doneContainer: Color,
@@ -231,10 +227,15 @@ data class RoadmapColors(
     val overdueContainer: Color,
     val muted: Color,
     val faint: Color,
-    /** Fill for primary actions: solid brand in light, mint→cyan gradient in dark. */
-    val primaryBrush: Brush,
+    val primaryStart: Color,
+    val primaryEnd: Color,
     val isDark: Boolean,
 )
+
+/** Fill for primary actions: solid brand in light, mint→cyan gradient in dark. */
+val RoadmapColors.primaryBrush: Brush
+    get() = if (primaryStart == primaryEnd) SolidColor(primaryStart)
+            else Brush.linearGradient(listOf(primaryStart, primaryEnd))
 
 internal val LightRoadmapColors = RoadmapColors(
     ringTrack = LightTokens.ringTrack,
@@ -244,7 +245,8 @@ internal val LightRoadmapColors = RoadmapColors(
     overdueContainer = LightTokens.overdueContainer,
     muted = LightTokens.muted,
     faint = LightTokens.faint,
-    primaryBrush = SolidColor(Brand),
+    primaryStart = Brand,
+    primaryEnd = Brand,
     isDark = false,
 )
 
@@ -256,11 +258,12 @@ internal val DarkRoadmapColors = RoadmapColors(
     overdueContainer = DarkTokens.overdueContainer,
     muted = DarkTokens.muted,
     faint = DarkTokens.faint,
-    primaryBrush = Brush.linearGradient(listOf(BrandMint, BrandCyan)),
+    primaryStart = BrandMint,
+    primaryEnd = BrandCyan,
     isDark = true,
 )
 
-val LocalRoadmapColors = staticCompositionLocalOf { LightRoadmapColors }
+internal val LocalRoadmapColors = staticCompositionLocalOf { LightRoadmapColors }
 
 /** Accessor: `RoadmapTheme.colors.overdue`. The `object` coexists with the `RoadmapTheme` composable. */
 object RoadmapTheme {
@@ -281,6 +284,8 @@ git add app/src/main/java/com/example/roadmap/ui/theme/RoadmapColors.kt
 git commit -m "design: add extended RoadmapColors + CompositionLocal"
 ```
 
+> **Note:** `primaryBrush` is an extension property — consumers in other packages must `import com.example.roadmap.ui.theme.primaryBrush`.
+
 ---
 
 ## Task 5: Typography (Inter + tabular numerals)
@@ -293,19 +298,29 @@ git commit -m "design: add extended RoadmapColors + CompositionLocal"
 package com.example.roadmap.ui.theme
 
 import androidx.compose.material3.Typography
+import androidx.compose.ui.text.ExperimentalTextApi
 import androidx.compose.ui.text.TextStyle
 import androidx.compose.ui.text.font.Font
 import androidx.compose.ui.text.font.FontFamily
+import androidx.compose.ui.text.font.FontVariation
 import androidx.compose.ui.text.font.FontWeight
 import androidx.compose.ui.unit.sp
 import com.example.roadmap.R
 
+// minSdk 26 supports variable fonts: one file, weights selected via the 'wght' axis.
+@OptIn(ExperimentalTextApi::class)
+private fun interWeight(weight: FontWeight) = Font(
+    R.font.inter_variable,
+    weight = weight,
+    variationSettings = FontVariation.Settings(FontVariation.weight(weight.weight)),
+)
+
 val Inter = FontFamily(
-    Font(R.font.inter_regular, FontWeight.Normal),
-    Font(R.font.inter_medium, FontWeight.Medium),
-    Font(R.font.inter_semibold, FontWeight.SemiBold),
-    Font(R.font.inter_bold, FontWeight.Bold),
-    Font(R.font.inter_extrabold, FontWeight.ExtraBold),
+    interWeight(FontWeight.Normal),
+    interWeight(FontWeight.Medium),
+    interWeight(FontWeight.SemiBold),
+    interWeight(FontWeight.Bold),
+    interWeight(FontWeight.ExtraBold),
 )
 
 /** Apply to any numeric text (counts, percentages) for tabular figures. */
@@ -336,7 +351,7 @@ val Typography = Typography(
 - [ ] **Step 2: Verify it compiles (font resources resolve)**
 
 Run: `./gradlew :app:compileDebugKotlin`
-Expected: `BUILD SUCCESSFUL` (fails if any `inter_*.ttf` is missing — fix Task 2).
+Expected: `BUILD SUCCESSFUL` (fails if `inter_variable.ttf` is missing — fix Task 2).
 
 - [ ] **Step 3: Commit**
 
@@ -375,7 +390,7 @@ object Spacing {
     val md = 12.dp
     val lg = 16.dp
     val xl = 20.dp
-    val xxl = 28.dp
+    val xxl = 24.dp
 }
 ```
 
