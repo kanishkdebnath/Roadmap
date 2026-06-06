@@ -19,5 +19,5 @@ object Spacing {
     val md = 12.dp
     val lg = 16.dp
     val xl = 20.dp
-    val xxl = 28.dp
+    val xxl = 24.dp
 }

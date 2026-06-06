@@ -26,7 +26,7 @@ val Inter = FontFamily(
     interWeight(FontWeight.ExtraBold),
 )
 
-/** Apply to any numeric text (counts, percentages) for tabular figures. */
+/** Merge onto a base TextStyle (e.g. `style.merge(TabularNums)`) for tabular figures; sets no font family. */
 val TabularNums = TextStyle(fontFeatureSettings = "tnum")
 
 private fun inter(

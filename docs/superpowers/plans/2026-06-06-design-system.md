@@ -158,7 +158,7 @@ internal object LightTokens {
     val primary = Brand
     val onPrimary = Color(0xFFFFFFFF)
     val ringTrack = Color(0xFFE4ECE7)
-    val done = Color(0xFF059669)
+    val done = Color(0xFF047857)
     val doneContainer = Color(0xFFE2F3EC)
     val overdue = Color(0xFFDC2626)
     val overdueContainer = Color(0xFFFBE8E8)
@@ -219,7 +219,7 @@ import androidx.compose.ui.graphics.SolidColor
 
 /** Bespoke tokens that Material 3's ColorScheme has no slot for. */
 @Immutable
-data class RoadmapColors(
+class RoadmapColors(
     val ringTrack: Color,
     val done: Color,
     val doneContainer: Color,
@@ -227,10 +227,15 @@ data class RoadmapColors(
     val overdueContainer: Color,
     val muted: Color,
     val faint: Color,
-    /** Fill for primary actions: solid brand in light, mint→cyan gradient in dark. */
-    val primaryBrush: Brush,
+    val primaryStart: Color,
+    val primaryEnd: Color,
     val isDark: Boolean,
 )
+
+/** Fill for primary actions: solid brand in light, mint→cyan gradient in dark. */
+val RoadmapColors.primaryBrush: Brush
+    get() = if (primaryStart == primaryEnd) SolidColor(primaryStart)
+            else Brush.linearGradient(listOf(primaryStart, primaryEnd))
 
 internal val LightRoadmapColors = RoadmapColors(
     ringTrack = LightTokens.ringTrack,
@@ -240,7 +245,8 @@ internal val LightRoadmapColors = RoadmapColors(
     overdueContainer = LightTokens.overdueContainer,
     muted = LightTokens.muted,
     faint = LightTokens.faint,
-    primaryBrush = SolidColor(Brand),
+    primaryStart = Brand,
+    primaryEnd = Brand,
     isDark = false,
 )
 
@@ -252,11 +258,12 @@ internal val DarkRoadmapColors = RoadmapColors(
     overdueContainer = DarkTokens.overdueContainer,
     muted = DarkTokens.muted,
     faint = DarkTokens.faint,
-    primaryBrush = Brush.linearGradient(listOf(BrandMint, BrandCyan)),
+    primaryStart = BrandMint,
+    primaryEnd = BrandCyan,
     isDark = true,
 )
 
-val LocalRoadmapColors = staticCompositionLocalOf { LightRoadmapColors }
+internal val LocalRoadmapColors = staticCompositionLocalOf { LightRoadmapColors }
 
 /** Accessor: `RoadmapTheme.colors.overdue`. The `object` coexists with the `RoadmapTheme` composable. */
 object RoadmapTheme {
@@ -276,6 +283,8 @@ Expected: `BUILD SUCCESSFUL`.
 git add app/src/main/java/com/example/roadmap/ui/theme/RoadmapColors.kt
 git commit -m "design: add extended RoadmapColors + CompositionLocal"
 ```
+
+> **Note:** `primaryBrush` is an extension property — consumers in other packages must `import com.example.roadmap.ui.theme.primaryBrush`.
 
 ---
 
@@ -381,7 +390,7 @@ object Spacing {
     val md = 12.dp
     val lg = 16.dp
     val xl = 20.dp
-    val xxl = 28.dp
+    val xxl = 24.dp
 }
 ```
 

@@ -18,7 +18,7 @@ internal object LightTokens {
     val primary = Brand
     val onPrimary = Color(0xFFFFFFFF)
     val ringTrack = Color(0xFFE4ECE7)
-    val done = Color(0xFF059669)
+    val done = Color(0xFF047857)
     val doneContainer = Color(0xFFE2F3EC)
     val overdue = Color(0xFFDC2626)
     val overdueContainer = Color(0xFFFBE8E8)
