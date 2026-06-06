@@ -15,6 +15,7 @@ import androidx.compose.ui.Alignment
 import androidx.compose.ui.Modifier
 import androidx.compose.ui.draw.clip
 import androidx.compose.ui.graphics.SolidColor
+import androidx.compose.ui.semantics.Role
 import androidx.compose.ui.tooling.preview.Preview
 import androidx.compose.ui.unit.dp
 import com.example.roadmap.ui.theme.RoadmapTheme
@@ -27,7 +28,7 @@ fun PrimaryButton(text: String, onClick: () -> Unit, modifier: Modifier = Modifi
             .height(44.dp)
             .clip(RoundedCornerShape(13.dp))
             .background(RoadmapTheme.colors.primaryBrush)
-            .clickable { onClick() }
+            .clickable(role = Role.Button) { onClick() }
             .padding(horizontal = 18.dp),
         verticalAlignment = Alignment.CenterVertically,
         horizontalArrangement = Arrangement.spacedBy(8.dp),
@@ -45,7 +46,7 @@ fun SecondaryButton(text: String, onClick: () -> Unit, modifier: Modifier = Modi
             .clip(RoundedCornerShape(13.dp))
             .background(SolidColor(MaterialTheme.colorScheme.surfaceVariant))
             .border(1.dp, MaterialTheme.colorScheme.outline, RoundedCornerShape(13.dp))
-            .clickable { onClick() }
+            .clickable(role = Role.Button) { onClick() }
             .padding(horizontal = 18.dp),
         verticalAlignment = Alignment.CenterVertically,
         horizontalArrangement = Arrangement.spacedBy(8.dp),
@@ -62,7 +63,7 @@ fun DangerButton(text: String, onClick: () -> Unit, modifier: Modifier = Modifie
             .height(44.dp)
             .clip(RoundedCornerShape(13.dp))
             .background(SolidColor(RoadmapTheme.colors.overdue))
-            .clickable { onClick() }
+            .clickable(role = Role.Button) { onClick() }
             .padding(horizontal = 18.dp),
         verticalAlignment = Alignment.CenterVertically,
         horizontalArrangement = Arrangement.spacedBy(8.dp),
@@ -79,7 +80,7 @@ fun RoadmapFab(text: String, onClick: () -> Unit, modifier: Modifier = Modifier)
             .height(54.dp)
             .clip(RoundedCornerShape(18.dp))
             .background(RoadmapTheme.colors.primaryBrush)
-            .clickable { onClick() }
+            .clickable(role = Role.Button) { onClick() }
             .padding(horizontal = 20.dp),
         verticalAlignment = Alignment.CenterVertically,
         horizontalArrangement = Arrangement.spacedBy(9.dp),

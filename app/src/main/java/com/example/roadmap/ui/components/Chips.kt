@@ -18,6 +18,7 @@ import androidx.compose.ui.Alignment
 import androidx.compose.ui.Modifier
 import androidx.compose.ui.graphics.Color
 import androidx.compose.ui.graphics.vector.ImageVector
+import androidx.compose.ui.semantics.Role
 import androidx.compose.ui.text.style.TextOverflow
 import androidx.compose.ui.tooling.preview.Preview
 import androidx.compose.ui.unit.dp
@@ -35,7 +36,7 @@ private fun ChipBase(
     Row(
         modifier = modifier
             .background(bg, RoundedCornerShape(8.dp))
-            .then(if (onClick != null) Modifier.clickable { onClick() } else Modifier)
+            .then(if (onClick != null) Modifier.clickable(role = Role.Button) { onClick() } else Modifier)
             .padding(horizontal = 9.dp, vertical = 4.dp),
         verticalAlignment = Alignment.CenterVertically,
         horizontalArrangement = Arrangement.spacedBy(5.dp),
@@ -76,6 +77,7 @@ fun LinkChip(label: String, modifier: Modifier = Modifier, onClick: () -> Unit =
             DeadlineChip("Sep 30", DeadlineState.Normal)
             DeadlineChip("May 15", DeadlineState.Overdue)
             DeadlineChip("Done", DeadlineState.Done)
+            LinkChip("developer.android.com")
         }
     }
 }

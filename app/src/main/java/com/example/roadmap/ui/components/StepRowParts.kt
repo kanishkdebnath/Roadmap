@@ -20,7 +20,6 @@ import androidx.compose.ui.Alignment
 import androidx.compose.ui.Modifier
 import androidx.compose.ui.draw.clip
 import androidx.compose.ui.draw.drawBehind
-import androidx.compose.ui.graphics.Color
 import androidx.compose.ui.graphics.PathEffect
 import androidx.compose.ui.graphics.drawscope.Stroke
 import androidx.compose.ui.semantics.semantics
@@ -64,7 +63,6 @@ fun AddInline(text: String, onClick: () -> Unit, modifier: Modifier = Modifier) 
     val shape = RoundedCornerShape(12.dp)
     Row(
         modifier = modifier
-            .clip(shape)
             .drawBehind {
                 drawRoundRect(
                     color = color,
@@ -73,11 +71,12 @@ fun AddInline(text: String, onClick: () -> Unit, modifier: Modifier = Modifier) 
                     cornerRadius = androidx.compose.ui.geometry.CornerRadius(12.dp.toPx()),
                 )
             }
+            .clip(shape)
             .clickable { onClick() },
         verticalAlignment = Alignment.CenterVertically,
         horizontalArrangement = Arrangement.spacedBy(9.dp),
     ) {
-        Icon(Icons.Rounded.Add, null, tint = color, modifier = Modifier.size(15.dp).padding(start = 11.dp))
+        Icon(Icons.Rounded.Add, null, tint = color, modifier = Modifier.padding(start = 11.dp).size(15.dp))
         Text(text, color = color, style = MaterialTheme.typography.titleSmall,
             modifier = Modifier.padding(end = 11.dp, top = 10.dp, bottom = 10.dp))
     }
