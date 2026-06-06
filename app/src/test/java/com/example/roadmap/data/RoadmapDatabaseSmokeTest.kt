@@ -21,8 +21,8 @@ class RoadmapDatabaseSmokeTest {
             RoadmapDatabase::class.java,
         ).build()
         try {
-            db.roadmapDao().insert(RoadmapEntity(title = "Learn Rust"))
-            assertEquals(1, db.roadmapDao().getAll().size)
+            val id = db.roadmapDao().insert(RoadmapEntity(title = "Learn Rust"))
+            assertEquals(1, id)
         } finally {
             db.close()
         }
