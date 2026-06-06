@@ -105,4 +105,19 @@ class RoomRoadmapRepositoryTest {
             .milestones[0].steps[0].links.map { it.url }
         assertEquals(listOf("https://new1", "https://new2"), links)
     }
+
+    @Test fun updateStepTitle_changes_title_but_not_completion() = runTest {
+        val rid = repo.createRoadmap("Goal")
+        val mid = repo.addMilestone(rid, "M")
+        val sid = repo.addStep(mid, "S")
+        repo.setStepCompleted(sid, true)
+        val before = repo.observeRoadmap(rid).first()!!.milestones[0].milestone.completedAt
+        assertNotNull(before)
+
+        repo.updateStepTitle(sid, "S renamed")
+
+        val after = repo.observeRoadmap(rid).first()!!
+        assertEquals("S renamed", after.milestones[0].steps[0].step.title)
+        assertEquals(before, after.milestones[0].milestone.completedAt)   // unchanged by a title edit
+    }
 }
