@@ -53,8 +53,18 @@ class RoadmapCardQueryTest {
         // title match
         assertEquals(listOf("Learn Spanish"),
             repo.observeRoadmapCards(false, "spanish").first().map { it.roadmap.title })
+        // case-insensitive (uppercase query against mixed-case milestone title)
+        assertEquals(listOf("Run a marathon"),
+            repo.observeRoadmapCards(false, "LONG").first().map { it.roadmap.title })
         // no match
         assertEquals(0, repo.observeRoadmapCards(false, "zzz").first().size)
+    }
+
+    @Test fun cards_ordered_by_updatedAt_desc() = runTest {
+        repo.createRoadmap("First")
+        repo.createRoadmap("Second")   // later create => higher updatedAt => sorts first
+        assertEquals(listOf("Second", "First"),
+            repo.observeRoadmapCards(false, "").first().map { it.roadmap.title })
     }
 
     @Test fun archived_scope_filters() = runTest {
