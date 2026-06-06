@@ -3,8 +3,10 @@ package com.example.roadmap.data.dao
 import androidx.room.Dao
 import androidx.room.Insert
 import androidx.room.Query
+import androidx.room.Transaction
 import androidx.room.Update
 import com.example.roadmap.data.entity.RoadmapEntity
+import com.example.roadmap.data.relation.RoadmapWithChildren
 import kotlinx.coroutines.flow.Flow
 
 @Dao
@@ -23,4 +25,8 @@ interface RoadmapDao {
 
     @Query("DELETE FROM roadmap WHERE id = :id")
     suspend fun deleteById(id: Long)
+
+    @Transaction
+    @Query("SELECT * FROM roadmap WHERE id = :id")
+    fun observeWithChildren(id: Long): Flow<RoadmapWithChildren?>
 }
