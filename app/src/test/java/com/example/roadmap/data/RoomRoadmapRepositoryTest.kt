@@ -9,6 +9,7 @@ import org.junit.After
 import org.junit.Assert.assertEquals
 import org.junit.Assert.assertNotNull
 import org.junit.Assert.assertNull
+import org.junit.Assert.assertTrue
 import org.junit.Before
 import org.junit.Test
 import org.junit.runner.RunWith
@@ -79,5 +80,29 @@ class RoomRoadmapRepositoryTest {
         val rid = repo.createRoadmap("X")
         repo.deleteRoadmap(rid)
         assertEquals(0, repo.observeRoadmaps(false).first().size)
+    }
+
+    @Test fun reorderMilestones_rejects_invalid_id_set() = runTest {
+        val rid = repo.createRoadmap("Goal")
+        val a = repo.addMilestone(rid, "A")
+        repo.addMilestone(rid, "B")
+        var threw = false
+        try {
+            repo.reorderMilestones(rid, listOf(a, 999L))   // 999 is not a milestone of this roadmap
+        } catch (e: IllegalArgumentException) {
+            threw = true
+        }
+        assertTrue(threw)
+    }
+
+    @Test fun setStepLinks_replaces_existing_links() = runTest {
+        val rid = repo.createRoadmap("Goal")
+        val mid = repo.addMilestone(rid, "M")
+        val sid = repo.addStep(mid, "S")
+        repo.setStepLinks(sid, listOf(LinkDraft("https://old", "Old")))
+        repo.setStepLinks(sid, listOf(LinkDraft("https://new1"), LinkDraft("https://new2")))
+        val links = repo.observeRoadmap(rid).first()!!.sorted()
+            .milestones[0].steps[0].links.map { it.url }
+        assertEquals(listOf("https://new1", "https://new2"), links)
     }
 }

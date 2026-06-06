@@ -726,12 +726,12 @@ class RoomRoadmapRepository(
         positionsFor(orderedIds).forEach { (id, pos) -> milestones.updatePosition(id, pos) }
     }
 
-    override suspend fun addStep(milestoneId: Long, title: String): Long {
+    override suspend fun addStep(milestoneId: Long, title: String): Long = db.withTransaction {
         val t = now()
         val position = steps.maxPosition(milestoneId) + 1
         val id = steps.insert(StepEntity(milestoneId = milestoneId, title = title, position = position, createdAt = t, updatedAt = t))
         recompute(milestoneId)
-        return id
+        id
     }
 
     override suspend fun updateStepTitle(id: Long, title: String) {
@@ -781,8 +781,9 @@ class RoomRoadmapRepository(
 
     /** Recompute a milestone's derived completedAt from its current steps. */
     private suspend fun recompute(milestoneId: Long) {
+        val t = now()
         val completions = steps.getByMilestone(milestoneId).map { it.completed }
-        milestones.setCompletedAt(milestoneId, milestoneCompletedAt(completions, now()), now())
+        milestones.setCompletedAt(milestoneId, milestoneCompletedAt(completions, t), t)
     }
 }
 ```
