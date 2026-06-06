@@ -20,6 +20,7 @@ class RingMathTest {
     }
     @Test fun is_complete_only_at_full() {
         assertEquals(true, isRingComplete(1f))
+        assertEquals(true, isRingComplete(1.5f))
         assertEquals(false, isRingComplete(0.999f))
     }
 }

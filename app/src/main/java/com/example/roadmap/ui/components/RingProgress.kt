@@ -28,10 +28,12 @@ import com.example.roadmap.ui.theme.TabularNums
 import kotlin.math.roundToInt
 
 // ---- pure math (JVM-testable) ----
-fun progressSweep(progress: Float): Float = progress.coerceIn(0f, 1f) * 360f
+private const val COMPLETE_THRESHOLD = 1f
+
+fun progressSweep(progress: Float): Float = progress.coerceIn(0f, COMPLETE_THRESHOLD) * 360f
 fun progressPercentLabel(progress: Float): String =
-    (progress.coerceIn(0f, 1f) * 100f).roundToInt().toString()
-fun isRingComplete(progress: Float): Boolean = progress >= 1f
+    (progress.coerceIn(0f, COMPLETE_THRESHOLD) * 100f).roundToInt().toString()
+fun isRingComplete(progress: Float): Boolean = progress >= COMPLETE_THRESHOLD
 
 enum class RingSize(val diameter: Dp, val stroke: Dp, val fontSize: Int) {
     Small(52.dp, 5.dp, 13), Medium(56.dp, 5.dp, 14), Large(104.dp, 9.dp, 27),
@@ -48,20 +50,29 @@ fun RingProgress(
     val trackColor = RoadmapTheme.colors.ringTrack
     val complete = isRingComplete(progress)
     val pct = progressPercentLabel(progress)
+    val sweep = progressSweep(progress)
 
     Box(
         modifier = modifier
             .size(size.diameter)
-            .semantics { contentDescription = "$pct percent complete" },
+            .semantics {
+                contentDescription = if (complete) "Complete" else "$pct percent complete"
+            },
         contentAlignment = Alignment.Center,
     ) {
         Canvas(Modifier.size(size.diameter)) {
-            val stroke = Stroke(width = size.stroke.toPx(), cap = StrokeCap.Round)
             val inset = size.stroke.toPx() / 2f
             val arcSize = Size(this.size.width - 2 * inset, this.size.height - 2 * inset)
             val topLeft = Offset(inset, inset)
+            // Track: full circle with butt caps so the seam at 0° stays flush.
             drawArc(trackColor, 0f, 360f, false, topLeft, arcSize, style = Stroke(width = size.stroke.toPx()))
-            drawArc(ringColor, -90f, progressSweep(progress), false, topLeft, arcSize, style = stroke)
+            // Progress: rounded caps; skip when empty so a zero-length arc can't render a dot.
+            if (sweep > 0f) {
+                drawArc(
+                    ringColor, -90f, sweep, false, topLeft, arcSize,
+                    style = Stroke(width = size.stroke.toPx(), cap = StrokeCap.Round),
+                )
+            }
         }
         if (complete) {
             Icon(
@@ -85,12 +96,32 @@ fun RingProgress(
 private fun RingSize.fontSizeSp() =
     TextUnit(fontSize.toFloat(), TextUnitType.Sp)
 
-@Preview
+@Preview(name = "Ring 62%")
 @Composable
 private fun RingPreview() {
     RoadmapTheme {
         Box(Modifier.size(120.dp), contentAlignment = Alignment.Center) {
             RingProgress(0.62f, size = RingSize.Large)
+        }
+    }
+}
+
+@Preview(name = "Ring complete")
+@Composable
+private fun RingPreviewComplete() {
+    RoadmapTheme {
+        Box(Modifier.size(120.dp), contentAlignment = Alignment.Center) {
+            RingProgress(1f, size = RingSize.Large)
+        }
+    }
+}
+
+@Preview(name = "Ring empty")
+@Composable
+private fun RingPreviewEmpty() {
+    RoadmapTheme {
+        Box(Modifier.size(120.dp), contentAlignment = Alignment.Center) {
+            RingProgress(0f, size = RingSize.Large)
         }
     }
 }
