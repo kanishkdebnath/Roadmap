@@ -1,6 +1,7 @@
 package com.example.roadmap.data
 
 import com.example.roadmap.data.entity.RoadmapEntity
+import com.example.roadmap.data.relation.RoadmapCard
 import com.example.roadmap.data.relation.RoadmapWithChildren
 import kotlinx.coroutines.flow.Flow
 
@@ -13,6 +14,7 @@ data class RoadmapDraft(val title: String, val description: String? = null, val 
 interface RoadmapRepository {
     fun observeRoadmaps(archived: Boolean): Flow<List<RoadmapEntity>>
     fun observeRoadmap(id: Long): Flow<RoadmapWithChildren?>          // children sorted by position
+    fun observeRoadmapCards(archived: Boolean, query: String): Flow<List<RoadmapCard>>
 
     suspend fun createRoadmap(title: String, description: String? = null, deadline: String? = null): Long
     suspend fun updateRoadmap(id: Long, title: String, description: String?, deadline: String?)
