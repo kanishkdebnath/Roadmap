@@ -2,6 +2,7 @@ package com.example.roadmap.ui.list
 
 import androidx.compose.foundation.BorderStroke
 import androidx.compose.foundation.layout.Arrangement
+import androidx.compose.foundation.layout.Box
 import androidx.compose.foundation.layout.Column
 import androidx.compose.foundation.layout.PaddingValues
 import androidx.compose.foundation.layout.Row
@@ -15,8 +16,15 @@ import androidx.compose.foundation.lazy.items
 import androidx.compose.foundation.text.KeyboardOptions
 import androidx.compose.material.icons.Icons
 import androidx.compose.material.icons.outlined.Map
+import androidx.compose.material.icons.rounded.BrightnessAuto
+import androidx.compose.material.icons.rounded.Check
+import androidx.compose.material.icons.rounded.DarkMode
+import androidx.compose.material.icons.rounded.Download
+import androidx.compose.material.icons.rounded.LightMode
 import androidx.compose.material.icons.rounded.Search
 import androidx.compose.material3.AlertDialog
+import androidx.compose.material3.DropdownMenu
+import androidx.compose.material3.DropdownMenuItem
 import androidx.compose.material3.ExperimentalMaterial3Api
 import androidx.compose.material3.Icon
 import androidx.compose.material3.IconButton
@@ -38,6 +46,7 @@ import androidx.compose.ui.text.input.ImeAction
 import androidx.compose.ui.text.style.TextOverflow
 import androidx.compose.ui.tooling.preview.Preview
 import androidx.compose.ui.unit.dp
+import com.example.roadmap.data.ThemeMode
 import com.example.roadmap.data.entity.RoadmapEntity
 import com.example.roadmap.data.relation.RoadmapCard
 import com.example.roadmap.domain.isOverdue
@@ -68,6 +77,8 @@ fun RoadmapListScreen(
     onOpenRoadmap: (Long) -> Unit,
     onCreate: () -> Unit,
     onImport: () -> Unit,
+    themeMode: ThemeMode = ThemeMode.System,
+    onSetThemeMode: (ThemeMode) -> Unit = {},
     modifier: Modifier = Modifier,
 ) {
     Scaffold(
@@ -90,8 +101,9 @@ fun RoadmapListScreen(
                         color = RoadmapTheme.colors.muted,
                     )
                 }
+                ThemeMenu(themeMode, onSetThemeMode)
                 IconButton(onClick = onImport) {
-                    Icon(Icons.Outlined.Map, contentDescription = "Import") // placeholder icon; full import in Phase 7
+                    Icon(Icons.Rounded.Download, contentDescription = "Import")
                 }
             }
 
@@ -252,6 +264,34 @@ private fun ListPreviewDark() = RoadmapTheme(darkTheme = true) {
 // ---- Task 5: dialog + stateful route ----
 
 @Composable
+private fun ThemeMenu(themeMode: ThemeMode, onSetThemeMode: (ThemeMode) -> Unit) {
+    var open by remember { mutableStateOf(false) }
+    Box {
+        IconButton(onClick = { open = true }) {
+            Icon(
+                when (themeMode) {
+                    ThemeMode.Light -> Icons.Rounded.LightMode
+                    ThemeMode.Dark -> Icons.Rounded.DarkMode
+                    ThemeMode.System -> Icons.Rounded.BrightnessAuto
+                },
+                contentDescription = "Theme",
+            )
+        }
+        DropdownMenu(expanded = open, onDismissRequest = { open = false }) {
+            ThemeMode.entries.forEach { m ->
+                DropdownMenuItem(
+                    text = { Text(m.name) },
+                    onClick = { onSetThemeMode(m); open = false },
+                    leadingIcon = {
+                        if (m == themeMode) Icon(Icons.Rounded.Check, contentDescription = null)
+                    },
+                )
+            }
+        }
+    }
+}
+
+@Composable
 fun NewRoadmapDialog(onDismiss: () -> Unit, onConfirm: (String, String?, String?) -> Unit) {
     var title by remember { mutableStateOf("") }
     var description by remember { mutableStateOf("") }
@@ -294,6 +334,8 @@ fun NewRoadmapDialog(onDismiss: () -> Unit, onConfirm: (String, String?, String?
 fun RoadmapListRoute(
     viewModel: RoadmapListViewModel,
     onOpenRoadmap: (Long) -> Unit,
+    themeMode: ThemeMode,
+    onSetThemeMode: (ThemeMode) -> Unit,
     modifier: Modifier = Modifier,
 ) {
     val state by viewModel.uiState.collectAsState()
@@ -306,6 +348,8 @@ fun RoadmapListRoute(
         onOpenRoadmap = onOpenRoadmap,
         onCreate = { showNew = true },
         onImport = { showImport = true },
+        themeMode = themeMode,
+        onSetThemeMode = onSetThemeMode,
         modifier = modifier,
     )
     if (showNew) {
