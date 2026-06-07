@@ -6,6 +6,7 @@ import androidx.room.Query
 import androidx.room.Transaction
 import androidx.room.Update
 import com.example.roadmap.data.entity.RoadmapEntity
+import com.example.roadmap.data.relation.RoadmapCard
 import com.example.roadmap.data.relation.RoadmapWithChildren
 import kotlinx.coroutines.flow.Flow
 
@@ -29,4 +30,21 @@ interface RoadmapDao {
     @Transaction
     @Query("SELECT * FROM roadmap WHERE id = :id")
     fun observeWithChildren(id: Long): Flow<RoadmapWithChildren?>
+
+    @Query("""
+        SELECT r.*,
+          (SELECT COUNT(*) FROM milestone m WHERE m.roadmapId = r.id) AS milestoneCount,
+          (SELECT COUNT(*) FROM step s JOIN milestone m ON s.milestoneId = m.id WHERE m.roadmapId = r.id) AS totalSteps,
+          (SELECT COUNT(*) FROM step s JOIN milestone m ON s.milestoneId = m.id WHERE m.roadmapId = r.id AND s.completed = 1) AS completedSteps
+        FROM roadmap r
+        WHERE r.archived = :archived
+          AND (
+            :query = ''
+            OR r.title LIKE '%' || :query || '%'
+            OR r.description LIKE '%' || :query || '%'
+            OR EXISTS (SELECT 1 FROM milestone m WHERE m.roadmapId = r.id AND m.title LIKE '%' || :query || '%')
+          )
+        ORDER BY r.updatedAt DESC
+    """)
+    fun observeCards(archived: Boolean, query: String): Flow<List<RoadmapCard>>
 }

@@ -5,6 +5,7 @@ import com.example.roadmap.data.entity.LinkEntity
 import com.example.roadmap.data.entity.MilestoneEntity
 import com.example.roadmap.data.entity.RoadmapEntity
 import com.example.roadmap.data.entity.StepEntity
+import com.example.roadmap.data.relation.RoadmapCard
 import com.example.roadmap.data.relation.RoadmapWithChildren
 import com.example.roadmap.data.relation.sorted
 import com.example.roadmap.domain.isValidReorder
@@ -25,6 +26,9 @@ class RoomRoadmapRepository(
 
     override fun observeRoadmaps(archived: Boolean): Flow<List<RoadmapEntity>> =
         roadmaps.observeByArchived(archived)
+
+    override fun observeRoadmapCards(archived: Boolean, query: String): Flow<List<RoadmapCard>> =
+        roadmaps.observeCards(archived, query)
 
     override fun observeRoadmap(id: Long): Flow<RoadmapWithChildren?> =
         roadmaps.observeWithChildren(id).map { it?.sorted() }
