@@ -14,6 +14,7 @@ import androidx.compose.foundation.layout.padding
 import androidx.compose.foundation.layout.width
 import androidx.compose.foundation.lazy.LazyColumn
 import androidx.compose.foundation.lazy.items
+import androidx.compose.foundation.lazy.rememberLazyListState
 import androidx.compose.material.icons.Icons
 import androidx.compose.material.icons.automirrored.rounded.ArrowBack
 import androidx.compose.material.icons.rounded.MoreVert
@@ -33,6 +34,8 @@ import androidx.compose.runtime.getValue
 import androidx.compose.runtime.mutableStateOf
 import androidx.compose.runtime.remember
 import androidx.compose.runtime.setValue
+import sh.calvin.reorderable.ReorderableItem
+import sh.calvin.reorderable.rememberReorderableLazyListState
 import androidx.compose.ui.Alignment
 import androidx.compose.ui.Modifier
 import androidx.compose.ui.text.style.TextDecoration
@@ -48,6 +51,7 @@ import com.example.roadmap.domain.progress
 import com.example.roadmap.domain.totalSteps
 import com.example.roadmap.ui.components.AddInline
 import com.example.roadmap.ui.components.DangerButton
+import com.example.roadmap.ui.components.DragGrip
 import com.example.roadmap.ui.components.DeadlineChip
 import com.example.roadmap.ui.components.DeadlineState
 import com.example.roadmap.ui.components.LinkChip
@@ -68,6 +72,7 @@ class DetailCallbacks(
     val onAddMilestone: () -> Unit,
     val onEditMilestone: (MilestoneEntity) -> Unit,
     val onDeleteMilestone: (Long) -> Unit,
+    val onReorderMilestones: (orderedIds: List<Long>) -> Unit,
     val onAddStep: (milestoneId: Long) -> Unit,
     val onEditStep: (StepWithLinks) -> Unit,
     val onToggleStep: (id: Long, completed: Boolean) -> Unit,
@@ -92,8 +97,22 @@ fun RoadmapDetailScreen(tree: RoadmapWithChildren, cb: DetailCallbacks, modifier
             )
         },
     ) { inner ->
+        // Local snapshot the drag mutates live; re-seeded whenever Room re-emits.
+        var milestones by remember(tree.milestones) { mutableStateOf(tree.milestones) }
+        val listState = rememberLazyListState()
+        // Reorder by KEY, not raw index: this LazyColumn also holds non-milestone
+        // items (header, "Milestones · N" label, AddInline), so onMove's from/to
+        // indices are absolute LazyColumn positions, not indices into `milestones`.
+        val reorderState = rememberReorderableLazyListState(listState) { from, to ->
+            milestones = milestones.toMutableList().apply {
+                val fromIndex = indexOfFirst { it.milestone.id == from.key }
+                val toIndex = indexOfFirst { it.milestone.id == to.key }
+                if (fromIndex != -1 && toIndex != -1) add(toIndex, removeAt(fromIndex))
+            }
+        }
         LazyColumn(
             Modifier.padding(inner).fillMaxSize(),
+            state = listState,
             contentPadding = PaddingValues(bottom = 96.dp),
         ) {
             item {
@@ -145,8 +164,17 @@ fun RoadmapDetailScreen(tree: RoadmapWithChildren, cb: DetailCallbacks, modifier
                     modifier = Modifier.padding(start = 18.dp, top = 18.dp, bottom = 4.dp),
                 )
             }
-            items(tree.milestones, key = { it.milestone.id }) { m ->
-                MilestoneCard(m, today, cb, Modifier.padding(horizontal = 18.dp, vertical = 6.dp))
+            items(milestones, key = { it.milestone.id }) { m ->
+                ReorderableItem(reorderState, key = m.milestone.id) {
+                    val handle = Modifier.draggableHandle(
+                        onDragStopped = { cb.onReorderMilestones(milestones.map { it.milestone.id }) },
+                    )
+                    MilestoneCard(
+                        m, today, cb,
+                        dragHandle = handle,
+                        modifier = Modifier.padding(horizontal = 18.dp, vertical = 6.dp),
+                    )
+                }
             }
             item {
                 AddInline(
@@ -160,7 +188,13 @@ fun RoadmapDetailScreen(tree: RoadmapWithChildren, cb: DetailCallbacks, modifier
 }
 
 @Composable
-private fun MilestoneCard(m: MilestoneWithSteps, today: LocalDate, cb: DetailCallbacks, modifier: Modifier) {
+private fun MilestoneCard(
+    m: MilestoneWithSteps,
+    today: LocalDate,
+    cb: DetailCallbacks,
+    dragHandle: Modifier,
+    modifier: Modifier,
+) {
     val done = m.milestone.completedAt != null
     Surface(
         modifier,
@@ -170,9 +204,10 @@ private fun MilestoneCard(m: MilestoneWithSteps, today: LocalDate, cb: DetailCal
     ) {
         Column(Modifier.fillMaxWidth().padding(vertical = 6.dp)) {
             Row(
-                Modifier.fillMaxWidth().padding(start = 14.dp, end = 4.dp, top = 8.dp),
+                Modifier.fillMaxWidth().padding(start = 6.dp, end = 4.dp, top = 8.dp),
                 verticalAlignment = Alignment.CenterVertically,
             ) {
+                DragGrip(dragHandle.padding(end = 6.dp))
                 Column(Modifier.weight(1f)) {
                     Text(
                         m.milestone.title,
@@ -289,6 +324,7 @@ internal fun noopCallbacks() = DetailCallbacks(
     onAddMilestone = {},
     onEditMilestone = {},
     onDeleteMilestone = {},
+    onReorderMilestones = {},
     onAddStep = {},
     onEditStep = {},
     onToggleStep = { _, _ -> },
