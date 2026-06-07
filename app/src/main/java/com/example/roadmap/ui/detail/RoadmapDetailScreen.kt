@@ -31,9 +31,11 @@ import androidx.compose.material3.TopAppBar
 import androidx.compose.material3.TopAppBarDefaults
 import androidx.compose.runtime.Composable
 import androidx.compose.runtime.getValue
+import androidx.compose.runtime.key
 import androidx.compose.runtime.mutableStateOf
 import androidx.compose.runtime.remember
 import androidx.compose.runtime.setValue
+import sh.calvin.reorderable.ReorderableColumn
 import sh.calvin.reorderable.ReorderableItem
 import sh.calvin.reorderable.rememberReorderableLazyListState
 import androidx.compose.ui.Alignment
@@ -73,6 +75,7 @@ class DetailCallbacks(
     val onEditMilestone: (MilestoneEntity) -> Unit,
     val onDeleteMilestone: (Long) -> Unit,
     val onReorderMilestones: (orderedIds: List<Long>) -> Unit,
+    val onReorderSteps: (milestoneId: Long, orderedIds: List<Long>) -> Unit,
     val onAddStep: (milestoneId: Long) -> Unit,
     val onEditStep: (StepWithLinks) -> Unit,
     val onToggleStep: (id: Long, completed: Boolean) -> Unit,
@@ -237,7 +240,20 @@ private fun MilestoneCard(
                 )
             }
             Column(Modifier.padding(top = 4.dp)) {
-                m.steps.forEach { s -> StepRow(s, cb) }
+                var steps by remember(m.steps) { mutableStateOf(m.steps) }
+                ReorderableColumn(
+                    list = steps,
+                    onSettle = { from, to ->
+                        steps = steps.toMutableList().apply { add(to, removeAt(from)) }
+                        cb.onReorderSteps(m.milestone.id, steps.map { it.step.id })
+                    },
+                ) { _, s, _ ->
+                    key(s.step.id) {
+                        ReorderableItem {
+                            StepRow(s, cb, dragHandle = Modifier.draggableHandle())
+                        }
+                    }
+                }
                 AddInline(
                     "Add step",
                     { cb.onAddStep(m.milestone.id) },
@@ -261,7 +277,7 @@ private fun MilestoneMenu(onEdit: () -> Unit, onDelete: () -> Unit) {
 }
 
 @Composable
-private fun StepRow(s: StepWithLinks, cb: DetailCallbacks) {
+private fun StepRow(s: StepWithLinks, cb: DetailCallbacks, dragHandle: Modifier) {
     Row(
         Modifier
             .fillMaxWidth()
@@ -269,6 +285,7 @@ private fun StepRow(s: StepWithLinks, cb: DetailCallbacks) {
             .padding(horizontal = 10.dp, vertical = 8.dp),
         verticalAlignment = Alignment.Top,
     ) {
+        DragGrip(dragHandle.padding(end = 8.dp, top = 1.dp))
         StepCheckbox(s.step.completed, { cb.onToggleStep(s.step.id, !s.step.completed) })
         Spacer(Modifier.width(11.dp))
         Column(Modifier.weight(1f)) {
@@ -325,6 +342,7 @@ internal fun noopCallbacks() = DetailCallbacks(
     onEditMilestone = {},
     onDeleteMilestone = {},
     onReorderMilestones = {},
+    onReorderSteps = { _, _ -> },
     onAddStep = {},
     onEditStep = {},
     onToggleStep = { _, _ -> },
