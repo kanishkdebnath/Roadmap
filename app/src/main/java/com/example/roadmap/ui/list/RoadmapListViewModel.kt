@@ -3,6 +3,7 @@ package com.example.roadmap.ui.list
 import androidx.lifecycle.ViewModel
 import androidx.lifecycle.ViewModelProvider
 import androidx.lifecycle.viewModelScope
+import com.example.roadmap.data.RoadmapDraft
 import com.example.roadmap.data.RoadmapRepository
 import com.example.roadmap.data.relation.RoadmapCard
 import kotlinx.coroutines.ExperimentalCoroutinesApi
@@ -37,6 +38,10 @@ class RoadmapListViewModel(private val repository: RoadmapRepository) : ViewMode
     fun setQuery(value: String) { query.value = value }
     fun createRoadmap(title: String, description: String?, deadline: String?) {
         viewModelScope.launch { repository.createRoadmap(title, description, deadline) }
+    }
+
+    fun importRoadmap(draft: RoadmapDraft) {
+        viewModelScope.launch { repository.importRoadmap(draft) }
     }
 }
 

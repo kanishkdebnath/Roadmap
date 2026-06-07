@@ -2,8 +2,12 @@ package com.example.roadmap.ui.list
 
 import androidx.room.Room
 import androidx.test.core.app.ApplicationProvider
+import com.example.roadmap.data.LinkDraft
+import com.example.roadmap.data.MilestoneDraft
 import com.example.roadmap.data.RoadmapDatabase
+import com.example.roadmap.data.RoadmapDraft
 import com.example.roadmap.data.RoomRoadmapRepository
+import com.example.roadmap.data.StepDraft
 import kotlinx.coroutines.Dispatchers
 import kotlinx.coroutines.ExperimentalCoroutinesApi
 import kotlinx.coroutines.flow.first
@@ -56,5 +60,22 @@ class RoadmapListViewModelTest {
         vm.setArchived(true)
         advanceUntilIdle()
         assertEquals(0, vm.uiState.first { it.archived }.cards.size)
+    }
+
+    @Test fun import_persists_full_tree_into_active() = runTest(dispatcher) {
+        val draft = RoadmapDraft(
+            title = "Imported Goal",
+            milestones = listOf(
+                MilestoneDraft("M1", steps = listOf(StepDraft("s1"), StepDraft("s2", completed = true))),
+                MilestoneDraft("M2", steps = listOf(StepDraft("s3", links = listOf(LinkDraft("https://x.com", "X"))))),
+            ),
+        )
+        vm.importRoadmap(draft)
+        advanceUntilIdle()
+        val card = vm.uiState.first { it.cards.size == 1 }.cards.single()
+        assertEquals("Imported Goal", card.roadmap.title)
+        assertEquals(2, card.milestoneCount)
+        assertEquals(3, card.totalSteps)
+        assertEquals(1, card.completedSteps)
     }
 }

@@ -4,11 +4,16 @@ import com.example.roadmap.data.entity.RoadmapEntity
 import com.example.roadmap.data.relation.RoadmapCard
 import com.example.roadmap.data.relation.RoadmapWithChildren
 import kotlinx.coroutines.flow.Flow
+import kotlinx.serialization.Serializable
 
 /** Plain models for atomic bulk import (Phase 7 maps validated JSON to these). */
+@Serializable
 data class LinkDraft(val url: String, val label: String? = null)
+@Serializable
 data class StepDraft(val title: String, val completed: Boolean = false, val links: List<LinkDraft> = emptyList())
+@Serializable
 data class MilestoneDraft(val title: String, val description: String? = null, val deadline: String? = null, val steps: List<StepDraft> = emptyList())
+@Serializable
 data class RoadmapDraft(val title: String, val description: String? = null, val deadline: String? = null, val milestones: List<MilestoneDraft> = emptyList())
 
 interface RoadmapRepository {
