@@ -56,6 +56,7 @@ import com.example.roadmap.ui.components.SegmentedControl
 import com.example.roadmap.ui.format.formatDeadline
 import com.example.roadmap.ui.theme.RoadmapHue
 import com.example.roadmap.ui.theme.RoadmapTheme
+import com.example.roadmap.ui.imports.ImportDialog
 import com.example.roadmap.ui.theme.hueForId
 import java.time.LocalDate
 
@@ -297,19 +298,26 @@ fun RoadmapListRoute(
 ) {
     val state by viewModel.uiState.collectAsState()
     var showNew by remember { mutableStateOf(false) }
+    var showImport by remember { mutableStateOf(false) }
     RoadmapListScreen(
         state = state,
         onScopeChange = viewModel::setArchived,
         onQueryChange = viewModel::setQuery,
         onOpenRoadmap = onOpenRoadmap,
         onCreate = { showNew = true },
-        onImport = { /* TODO Phase 7: paste-JSON import */ },
+        onImport = { showImport = true },
         modifier = modifier,
     )
     if (showNew) {
         NewRoadmapDialog(
             onDismiss = { showNew = false },
             onConfirm = { t, d, dl -> viewModel.createRoadmap(t, d, dl); showNew = false },
+        )
+    }
+    if (showImport) {
+        ImportDialog(
+            onDismiss = { showImport = false },
+            onImport = { draft -> viewModel.importRoadmap(draft); showImport = false },
         )
     }
 }
