@@ -35,12 +35,16 @@ class RoadmapDetailViewModel(
     fun updateMilestone(id: Long, title: String, description: String?, deadline: String?) =
         launch { repository.updateMilestone(id, title, description, deadline) }
     fun deleteMilestone(id: Long) = launch { repository.deleteMilestone(id) }
+    fun reorderMilestones(orderedIds: List<Long>) =
+        launch { repository.reorderMilestones(roadmapId, orderedIds) }
 
     // steps
     fun addStep(milestoneId: Long, title: String) = launch { repository.addStep(milestoneId, title) }
     fun updateStepTitle(id: Long, title: String) = launch { repository.updateStepTitle(id, title) }
     fun setStepCompleted(id: Long, completed: Boolean) = launch { repository.setStepCompleted(id, completed) }
     fun deleteStep(id: Long) = launch { repository.deleteStep(id) }
+    fun reorderSteps(milestoneId: Long, orderedIds: List<Long>) =
+        launch { repository.reorderSteps(milestoneId, orderedIds) }
     fun setStepLinks(stepId: Long, links: List<LinkDraft>) = launch { repository.setStepLinks(stepId, links) }
 
     private inline fun launch(crossinline block: suspend () -> Unit) {
