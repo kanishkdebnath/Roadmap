@@ -150,10 +150,14 @@ fun EditStepDialog(
                     Icon(Icons.Rounded.Add, null)
                     Text("Add link")
                 }
+                val hasInvalidUrl = links.any {
+                    it.first.isNotBlank() && !it.first.startsWith("http://") && !it.first.startsWith("https://")
+                }
                 Text(
                     "Links must start with http:// or https://",
                     style = MaterialTheme.typography.bodySmall,
-                    color = MaterialTheme.colorScheme.error,
+                    color = if (hasInvalidUrl) MaterialTheme.colorScheme.error
+                            else MaterialTheme.colorScheme.onSurfaceVariant,
                 )
             }
         },
