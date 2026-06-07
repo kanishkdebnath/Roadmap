@@ -13,6 +13,7 @@ import androidx.compose.material3.Text
 import androidx.compose.runtime.Composable
 import androidx.compose.ui.Alignment
 import androidx.compose.ui.Modifier
+import androidx.compose.ui.draw.alpha
 import androidx.compose.ui.draw.clip
 import androidx.compose.ui.graphics.SolidColor
 import androidx.compose.ui.semantics.Role
@@ -22,13 +23,14 @@ import com.example.roadmap.ui.theme.RoadmapTheme
 import com.example.roadmap.ui.theme.primaryBrush
 
 @Composable
-fun PrimaryButton(text: String, onClick: () -> Unit, modifier: Modifier = Modifier) {
+fun PrimaryButton(text: String, onClick: () -> Unit, modifier: Modifier = Modifier, enabled: Boolean = true) {
     Row(
         modifier = modifier
             .height(44.dp)
             .clip(RoundedCornerShape(13.dp))
             .background(RoadmapTheme.colors.primaryBrush)
-            .clickable(role = Role.Button) { onClick() }
+            .alpha(if (enabled) 1f else 0.4f)
+            .clickable(role = Role.Button, enabled = enabled) { onClick() }
             .padding(horizontal = 18.dp),
         verticalAlignment = Alignment.CenterVertically,
         horizontalArrangement = Arrangement.spacedBy(8.dp),
