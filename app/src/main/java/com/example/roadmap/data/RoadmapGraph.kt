@@ -15,4 +15,11 @@ object RoadmapGraph {
         }
 
     fun repository(context: Context): RoadmapRepository = RoomRoadmapRepository(database(context))
+
+    @Volatile private var themeStore: ThemeStore? = null
+
+    fun themeStore(context: Context): ThemeStore =
+        themeStore ?: synchronized(this) {
+            themeStore ?: ThemeStore(context.applicationContext).also { themeStore = it }
+        }
 }
