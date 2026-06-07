@@ -60,6 +60,8 @@ fun RoadmapDetailRoute(
             onAddMilestone = { dialog = DetailDialog.NewMilestone },
             onEditMilestone = { dialog = DetailDialog.EditMilestone(it) },
             onDeleteMilestone = { dialog = DetailDialog.DeleteMilestone(it) },
+            onReorderMilestones = { ids -> vm.reorderMilestones(ids) },
+            onReorderSteps = { milestoneId, ids -> vm.reorderSteps(milestoneId, ids) },
             onAddStep = { dialog = DetailDialog.NewStep(it) },
             onEditStep = { dialog = DetailDialog.EditStep(it) },
             onToggleStep = { id, completed -> vm.setStepCompleted(id, completed) },
