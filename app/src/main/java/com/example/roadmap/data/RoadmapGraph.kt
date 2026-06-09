@@ -11,7 +11,7 @@ object RoadmapGraph {
         database ?: synchronized(this) {
             database ?: Room.databaseBuilder(
                 context.applicationContext, RoadmapDatabase::class.java, "roadmap.db"
-            ).build().also { database = it }
+            ).addMigrations(MIGRATION_1_2).build().also { database = it }
         }
 
     fun repository(context: Context): RoadmapRepository = RoomRoadmapRepository(database(context))
