@@ -12,6 +12,10 @@ import com.example.roadmap.data.entity.MilestoneEntity
 import com.example.roadmap.data.entity.RoadmapEntity
 import com.example.roadmap.data.entity.StepEntity
 import com.example.roadmap.data.journal.JournalConverters
+import com.example.roadmap.data.journal.dao.JournalDayDao
+import com.example.roadmap.data.journal.dao.JournalEventDao
+import com.example.roadmap.data.journal.dao.JournalLinkDao
+import com.example.roadmap.data.journal.dao.JournalReferenceDao
 import com.example.roadmap.data.journal.entity.JournalDayEntity
 import com.example.roadmap.data.journal.entity.JournalEventEntity
 import com.example.roadmap.data.journal.entity.JournalLinkEntity
@@ -31,5 +35,8 @@ abstract class RoadmapDatabase : RoomDatabase() {
     abstract fun milestoneDao(): MilestoneDao
     abstract fun stepDao(): StepDao
     abstract fun linkDao(): LinkDao
-    // journal DAO accessor methods are added in Task 5 (once those DAOs exist)
+    abstract fun journalDayDao(): JournalDayDao
+    abstract fun journalEventDao(): JournalEventDao
+    abstract fun journalLinkDao(): JournalLinkDao
+    abstract fun journalReferenceDao(): JournalReferenceDao
 }
