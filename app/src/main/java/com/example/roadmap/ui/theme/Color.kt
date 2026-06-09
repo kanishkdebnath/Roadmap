@@ -24,6 +24,12 @@ internal object LightTokens {
     val overdueContainer = Color(0xFFFBE8E8)
     val muted = Color(0xFF5D6E65)
     val faint = Color(0xFF8A9890)
+    val amber = Color(0xFFF59E0B)
+    val amberContainer = Color(0xFFFCEFD2)
+    val neutral = Color(0xFF94A3B8)
+    val neutralContainer = Color(0xFFEEF1F0)
+    val sky = Color(0xFF0EA5E9)
+    val skyContainer = Color(0xFFE0F2FE)
 }
 
 internal object DarkTokens {
@@ -43,4 +49,10 @@ internal object DarkTokens {
     val overdueContainer = Color(0xFF2A1717)
     val muted = Color(0xFF93AB9D)
     val faint = Color(0xFF6C8678)
+    val amber = Color(0xFFFBBF24)
+    val amberContainer = Color(0xFF2C2510)
+    val neutral = Color(0xFF93AB9D)
+    val neutralContainer = Color(0xFF1B2A21)
+    val sky = Color(0xFF38BDF8)
+    val skyContainer = Color(0xFF0E2A38)
 }
