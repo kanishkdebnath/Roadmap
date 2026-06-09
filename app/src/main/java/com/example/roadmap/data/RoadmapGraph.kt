@@ -2,6 +2,8 @@ package com.example.roadmap.data
 
 import android.content.Context
 import androidx.room.Room
+import com.example.roadmap.data.journal.JournalRepository
+import com.example.roadmap.data.journal.RoomJournalRepository
 
 /** Minimal manual DI: a process-wide database + repository. Replace with Hilt later if desired. */
 object RoadmapGraph {
@@ -15,4 +17,6 @@ object RoadmapGraph {
         }
 
     fun repository(context: Context): RoadmapRepository = RoomRoadmapRepository(database(context))
+
+    fun journalRepository(context: Context): JournalRepository = RoomJournalRepository(database(context))
 }
