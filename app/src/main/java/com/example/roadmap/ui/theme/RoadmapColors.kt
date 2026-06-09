@@ -18,6 +18,12 @@ class RoadmapColors(
     val overdueContainer: Color,
     val muted: Color,
     val faint: Color,
+    val amber: Color,
+    val amberContainer: Color,
+    val neutral: Color,
+    val neutralContainer: Color,
+    val sky: Color,
+    val skyContainer: Color,
     val primaryStart: Color,
     val primaryEnd: Color,
     val isDark: Boolean,
@@ -31,6 +37,12 @@ internal val LightRoadmapColors = RoadmapColors(
     overdueContainer = LightTokens.overdueContainer,
     muted = LightTokens.muted,
     faint = LightTokens.faint,
+    amber = LightTokens.amber,
+    amberContainer = LightTokens.amberContainer,
+    neutral = LightTokens.neutral,
+    neutralContainer = LightTokens.neutralContainer,
+    sky = LightTokens.sky,
+    skyContainer = LightTokens.skyContainer,
     primaryStart = Brand,
     primaryEnd = Brand,
     isDark = false,
@@ -44,6 +56,12 @@ internal val DarkRoadmapColors = RoadmapColors(
     overdueContainer = DarkTokens.overdueContainer,
     muted = DarkTokens.muted,
     faint = DarkTokens.faint,
+    amber = DarkTokens.amber,
+    amberContainer = DarkTokens.amberContainer,
+    neutral = DarkTokens.neutral,
+    neutralContainer = DarkTokens.neutralContainer,
+    sky = DarkTokens.sky,
+    skyContainer = DarkTokens.skyContainer,
     primaryStart = BrandMint,
     primaryEnd = BrandCyan,
     isDark = true,
@@ -53,6 +71,26 @@ internal val DarkRoadmapColors = RoadmapColors(
 val RoadmapColors.primaryBrush: Brush
     get() = if (primaryStart == primaryEnd) SolidColor(primaryStart)
             else Brush.linearGradient(listOf(primaryStart, primaryEnd))
+
+/** Mood scale 1..5 → accent token (spec §7). 5 = sky (brand collides with mood-4 emerald). */
+fun RoadmapColors.moodAccent(scale: Int): Color = when (scale) {
+    1 -> overdue
+    2 -> amber
+    3 -> neutral
+    4 -> done
+    5 -> sky
+    else -> neutral
+}
+
+/** Mood scale 1..5 → soft container tint used by the heatmap cells. */
+fun RoadmapColors.moodTint(scale: Int): Color = when (scale) {
+    1 -> overdueContainer
+    2 -> amberContainer
+    3 -> neutralContainer
+    4 -> doneContainer
+    5 -> skyContainer
+    else -> neutralContainer
+}
 
 internal val LocalRoadmapColors = staticCompositionLocalOf { LightRoadmapColors }
 
