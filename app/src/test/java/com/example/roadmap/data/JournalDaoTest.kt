@@ -61,7 +61,9 @@ class JournalDaoTest {
     @Test fun searchTargets_matches_roadmaps_and_milestones() = runTest {
         val rid = db.roadmapDao().insert(RoadmapEntity(title = "Learn Compose"))
         db.milestoneDao().insert(MilestoneEntity(roadmapId = rid, title = "Compose Basics", position = 0))
-        val titles = db.journalReferenceDao().searchTargets("Compose").first().map { it.title }
-        assertEquals(listOf("Compose Basics", "Learn Compose"), titles)  // ORDER BY title ASC
+        val results = db.journalReferenceDao().searchTargets("Compose").first()
+        assertEquals(listOf("Compose Basics", "Learn Compose"), results.map { it.title })  // ORDER BY title ASC
+        assertEquals(listOf(RefType.Milestone, RefType.Roadmap), results.map { it.type })
+        assertEquals(rid, results.first { it.type == RefType.Milestone }.roadmapId)         // milestone carries its roadmapId
     }
 }
