@@ -19,6 +19,7 @@ class MainActivity : ComponentActivity() {
         super.onCreate(savedInstanceState)
         enableEdgeToEdge()
         val repository = RoadmapGraph.repository(applicationContext)
+        val journalRepository = RoadmapGraph.journalRepository(applicationContext)
         val themeStore = RoadmapGraph.themeStore(applicationContext)
         setContent {
             val mode by themeStore.mode.collectAsState()
@@ -30,6 +31,7 @@ class MainActivity : ComponentActivity() {
             RoadmapTheme(darkTheme = dark) {
                 RoadmapApp(
                     repository = repository,
+                    journalRepository = journalRepository,
                     themeMode = mode,
                     onSetThemeMode = themeStore::setMode,
                     modifier = Modifier.fillMaxSize(),

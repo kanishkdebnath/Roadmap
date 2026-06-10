@@ -28,11 +28,14 @@ import androidx.compose.ui.unit.dp
 import androidx.lifecycle.viewmodel.compose.viewModel
 import com.example.roadmap.data.RoadmapRepository
 import com.example.roadmap.data.ThemeMode
+import com.example.roadmap.data.journal.JournalRepository
 import com.example.roadmap.ui.detail.RoadmapDetailRoute
-import com.example.roadmap.ui.journal.JournalScaffoldScreen
+import com.example.roadmap.ui.journal.DayEditorStub
+import com.example.roadmap.ui.journal.JournalRoute
 import com.example.roadmap.ui.list.RoadmapListRoute
 import com.example.roadmap.ui.list.RoadmapListViewModel
 import com.example.roadmap.ui.list.RoadmapListViewModelFactory
+import java.time.LocalDate
 
 /** Top-level destinations. */
 enum class Tab { Roadmaps, Journal }
@@ -40,25 +43,28 @@ enum class Tab { Roadmaps, Journal }
 @Composable
 fun RoadmapApp(
     repository: RoadmapRepository,
+    journalRepository: JournalRepository,
     themeMode: ThemeMode,
     onSetThemeMode: (ThemeMode) -> Unit,
     modifier: Modifier = Modifier,
 ) {
     var tab by rememberSaveable { mutableStateOf(Tab.Roadmaps) }
     var roadmapDetailId by rememberSaveable { mutableStateOf<Long?>(null) }
+    // LocalDate isn't Saveable; store the selected journal day as an epoch-day Long.
+    var journalEditorDay by rememberSaveable { mutableStateOf<Long?>(null) }
+    val journalEditorDate = journalEditorDay?.let { LocalDate.ofEpochDay(it) }
 
-    // Back inside a roadmap detail pops to the list. The nav bar/rail is hidden while in detail,
-    // so tab switches only happen from a tab root (roadmapDetailId is null at that point).
-    BackHandler(enabled = tab == Tab.Roadmaps && roadmapDetailId != null) { roadmapDetailId = null }
-    val inDetail = tab == Tab.Roadmaps && roadmapDetailId != null
+    val inDetail = (tab == Tab.Roadmaps && roadmapDetailId != null) ||
+        (tab == Tab.Journal && journalEditorDate != null)
+    BackHandler(enabled = inDetail) {
+        if (tab == Tab.Roadmaps) roadmapDetailId = null else journalEditorDay = null
+    }
 
     BoxWithConstraints(modifier) {
         val wide = maxWidth >= 600.dp
         Scaffold(
             bottomBar = { if (!wide && !inDetail) RoadmapNavBar(tab) { tab = it } },
         ) { inner ->
-            // The List/Detail screens have their own Scaffolds; consumeWindowInsets tells them the
-            // outer Scaffold already applied these insets, so they don't double-pad.
             Row(
                 Modifier
                     .padding(inner)
@@ -83,7 +89,14 @@ fun RoadmapApp(
                                 RoadmapDetailRoute(repository, id, onBack = { roadmapDetailId = null })
                             }
                         }
-                        Tab.Journal -> JournalScaffoldScreen()
+                        Tab.Journal -> {
+                            val d = journalEditorDate
+                            if (d == null) {
+                                JournalRoute(journalRepository, onOpenDay = { journalEditorDay = it.toEpochDay() })
+                            } else {
+                                DayEditorStub(d, onBack = { journalEditorDay = null })
+                            }
+                        }
                     }
                 }
             }
