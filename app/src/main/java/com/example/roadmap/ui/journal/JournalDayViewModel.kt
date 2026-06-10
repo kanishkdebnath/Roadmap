@@ -72,14 +72,17 @@ class JournalDayViewModel(
     }
 
     fun save(onSaved: () -> Unit) {
-        val snapshot = _state.value.draft.normalized()
-        onSaved()
-        viewModelScope.launch { repository.saveDay(snapshot) }
+        viewModelScope.launch {
+            repository.saveDay(_state.value.draft.normalized())
+            onSaved()
+        }
     }
 
     fun delete(onDeleted: () -> Unit) {
-        onDeleted()
-        viewModelScope.launch { repository.deleteDay(date) }
+        viewModelScope.launch {
+            repository.deleteDay(date)
+            onDeleted()
+        }
     }
 
     private fun computeCanSave(d: JournalDraft): Boolean =

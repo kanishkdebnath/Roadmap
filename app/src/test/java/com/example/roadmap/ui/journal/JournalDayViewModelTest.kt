@@ -65,17 +65,17 @@ class JournalDayViewModelTest {
 
     @Test fun editing_enables_save_and_persists() = runTest(dispatcher) {
         val vm = JournalDayViewModel(repo, date)
-        advanceUntilIdle()
-        assertFalse(vm.uiState.first { it.loaded }.canSave)
+        vm.uiState.first { it.loaded }
+        assertFalse(vm.uiState.value.canSave)
         vm.update { it.copy(moodScale = 4, summary = "new day") }
         assertTrue(vm.uiState.value.canSave)
         var saved = false
         vm.save { saved = true }
-        advanceUntilIdle()
-        assertTrue(saved)
-        val persisted = repo.observeDay(date).first()!!
+        val persisted = repo.observeDay(date).first { it != null }!!   // await the Room commit
         assertEquals(4, persisted.day.moodScale)
         assertEquals("new day", persisted.day.summary)
+        advanceUntilIdle()
+        assertTrue(saved)                                              // callback fires after persist
     }
 
     @Test fun invalid_link_url_blocks_save() = runTest(dispatcher) {
@@ -89,14 +89,12 @@ class JournalDayViewModelTest {
 
     @Test fun delete_removes_the_day() = runTest(dispatcher) {
         repo.saveDay(JournalDraft(date = date, moodScale = 3))
-        advanceUntilIdle()
         val vm = JournalDayViewModel(repo, date)
-        advanceUntilIdle()
         vm.uiState.first { it.loaded }
         var deleted = false
         vm.delete { deleted = true }
+        assertNull(repo.observeDay(date).first { it == null })         // await the deletion
         advanceUntilIdle()
         assertTrue(deleted)
-        assertNull(repo.observeDay(date).first())
     }
 }
