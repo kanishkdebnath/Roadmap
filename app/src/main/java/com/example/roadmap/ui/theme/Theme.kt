@@ -20,7 +20,7 @@ private tailrec fun Context.findActivity(): Activity? = when (this) {
     else -> null
 }
 
-private val LightColorScheme = lightColorScheme(
+internal val LightColorScheme = lightColorScheme(
     primary = LightTokens.primary,
     onPrimary = LightTokens.onPrimary,
     primaryContainer = Color(0xFFE8EFEA),
@@ -33,11 +33,22 @@ private val LightColorScheme = lightColorScheme(
     onSurfaceVariant = LightTokens.onSurfaceVariant,
     outline = LightTokens.outline,
     outlineVariant = LightTokens.outlineVariant,
+    // Selected nav indicator / secondary accents (kept in the brand family, not M3 baseline).
+    secondary = Brand,
+    onSecondary = Color.White,
+    secondaryContainer = Color(0xFFE8EFEA),
+    onSecondaryContainer = Brand,
+    // surfaceContainer ramp — read by NavigationBar/Rail + DropdownMenu; mapped to the green surfaces.
+    surfaceContainerLowest = LightTokens.surface,
+    surfaceContainerLow = LightTokens.background,
+    surfaceContainer = LightTokens.surfaceVariant,
+    surfaceContainerHigh = Color(0xFFECF1EE),
+    surfaceContainerHighest = LightTokens.outlineVariant,
     error = LightTokens.overdue,
     onError = Color.White,
 )
 
-private val DarkColorScheme = darkColorScheme(
+internal val DarkColorScheme = darkColorScheme(
     primary = DarkTokens.primary,
     onPrimary = DarkTokens.onPrimary,
     primaryContainer = Color(0xFF10301F),
@@ -50,6 +61,17 @@ private val DarkColorScheme = darkColorScheme(
     onSurfaceVariant = DarkTokens.onSurfaceVariant,
     outline = DarkTokens.outline,
     outlineVariant = DarkTokens.outlineVariant,
+    // Selected nav indicator / secondary accents (kept in the brand family, not M3 baseline).
+    secondary = BrandMint,
+    onSecondary = DarkTokens.onPrimary,
+    secondaryContainer = Color(0xFF10301F),
+    onSecondaryContainer = BrandMint,
+    // surfaceContainer ramp — read by NavigationBar/Rail + DropdownMenu; mapped to the green surfaces.
+    surfaceContainerLowest = DarkTokens.background,
+    surfaceContainerLow = DarkTokens.surface,
+    surfaceContainer = DarkTokens.surfaceVariant,
+    surfaceContainerHigh = Color(0xFF16301F),
+    surfaceContainerHighest = DarkTokens.outlineVariant,
     error = DarkTokens.overdue,
     onError = DarkTokens.onPrimary,
 )
