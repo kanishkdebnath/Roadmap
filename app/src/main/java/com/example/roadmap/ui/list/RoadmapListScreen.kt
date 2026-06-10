@@ -12,7 +12,7 @@ import androidx.compose.foundation.layout.fillMaxWidth
 import androidx.compose.foundation.layout.padding
 import androidx.compose.foundation.layout.width
 import androidx.compose.foundation.lazy.LazyColumn
-import androidx.compose.foundation.lazy.items
+import androidx.compose.foundation.lazy.itemsIndexed
 import androidx.compose.foundation.text.KeyboardOptions
 import androidx.compose.material.icons.Icons
 import androidx.compose.material.icons.outlined.Map
@@ -34,13 +34,19 @@ import androidx.compose.material3.Scaffold
 import androidx.compose.material3.Surface
 import androidx.compose.material3.Text
 import androidx.compose.material3.TextButton
+import androidx.compose.animation.core.animateFloatAsState
+import androidx.compose.animation.core.snap
+import androidx.compose.animation.core.tween
 import androidx.compose.runtime.Composable
+import androidx.compose.runtime.LaunchedEffect
 import androidx.compose.runtime.collectAsState
 import androidx.compose.runtime.getValue
 import androidx.compose.runtime.mutableStateOf
 import androidx.compose.runtime.remember
 import androidx.compose.runtime.setValue
 import androidx.compose.ui.Alignment
+import androidx.compose.ui.graphics.graphicsLayer
+import androidx.compose.ui.semantics.semantics
 import androidx.compose.ui.Modifier
 import androidx.compose.ui.text.input.ImeAction
 import androidx.compose.ui.text.style.TextOverflow
@@ -67,7 +73,11 @@ import com.example.roadmap.ui.theme.RoadmapHue
 import com.example.roadmap.ui.theme.RoadmapTheme
 import com.example.roadmap.ui.imports.ImportDialog
 import com.example.roadmap.ui.theme.hueForId
+import com.example.roadmap.ui.theme.MotionDurations
+import com.example.roadmap.ui.theme.StandardEasing
+import com.example.roadmap.ui.theme.rememberReduceMotion
 import java.time.LocalDate
+import kotlinx.coroutines.delay
 
 @Composable
 fun RoadmapListScreen(
@@ -160,8 +170,8 @@ fun RoadmapListScreen(
                     ),
                     verticalArrangement = Arrangement.spacedBy(13.dp),
                 ) {
-                    items(state.cards, key = { it.roadmap.id }) { card ->
-                        RoadmapCardItem(card, onClick = { onOpenRoadmap(card.roadmap.id) })
+                    itemsIndexed(state.cards, key = { _, c -> c.roadmap.id }) { index, card ->
+                        RoadmapCardItem(card, index = index, onClick = { onOpenRoadmap(card.roadmap.id) })
                     }
                 }
             }
@@ -171,13 +181,31 @@ fun RoadmapListScreen(
 
 @OptIn(ExperimentalMaterial3Api::class)
 @Composable
-private fun RoadmapCardItem(card: RoadmapCard, onClick: () -> Unit) {
+private fun RoadmapCardItem(card: RoadmapCard, index: Int, onClick: () -> Unit) {
     val r = card.roadmap
     val complete = card.totalSteps > 0 && card.completedSteps == card.totalSteps
     val overdue = isOverdue(r.deadline, complete, LocalDate.now())
     val progress = progressFraction(card.completedSteps, card.totalSteps)
+
+    val reduce = rememberReduceMotion()
+    var appeared by remember { mutableStateOf(false) }
+    LaunchedEffect(Unit) {
+        if (reduce) appeared = true else { delay((index.coerceAtMost(6) * 40).toLong()); appeared = true }
+    }
+    val enter by animateFloatAsState(
+        targetValue = if (appeared) 1f else 0f,
+        animationSpec = if (reduce) snap() else tween(MotionDurations.MEDIUM, easing = StandardEasing),
+        label = "cardEnter",
+    )
+
     Surface(
         onClick = onClick,
+        modifier = Modifier
+            .graphicsLayer {
+                alpha = enter
+                translationY = (1f - enter) * 12.dp.toPx()
+            }
+            .semantics(mergeDescendants = true) {},
         shape = MaterialTheme.shapes.large,
         color = MaterialTheme.colorScheme.surface,
         border = BorderStroke(1.dp, MaterialTheme.colorScheme.outlineVariant),

@@ -1,60 +1,100 @@
 package com.example.roadmap.ui.components
 
+import androidx.compose.animation.animateColorAsState
+import androidx.compose.animation.core.animateFloatAsState
+import androidx.compose.animation.core.snap
+import androidx.compose.animation.core.tween
 import androidx.compose.foundation.background
 import androidx.compose.foundation.border
 import androidx.compose.foundation.clickable
 import androidx.compose.foundation.layout.Arrangement
+import androidx.compose.foundation.layout.Box
 import androidx.compose.foundation.layout.Row
 import androidx.compose.foundation.layout.padding
 import androidx.compose.foundation.layout.size
+import androidx.compose.foundation.selection.toggleable
 import androidx.compose.foundation.shape.RoundedCornerShape
 import androidx.compose.material.icons.Icons
 import androidx.compose.material.icons.rounded.Add
 import androidx.compose.material.icons.rounded.Check
 import androidx.compose.material.icons.rounded.DragIndicator
+import androidx.compose.material3.ExperimentalMaterial3Api
 import androidx.compose.material3.Icon
 import androidx.compose.material3.MaterialTheme
 import androidx.compose.material3.Text
+import androidx.compose.material3.minimumInteractiveComponentSize
 import androidx.compose.runtime.Composable
+import androidx.compose.runtime.getValue
 import androidx.compose.ui.Alignment
 import androidx.compose.ui.Modifier
 import androidx.compose.ui.draw.clip
 import androidx.compose.ui.draw.drawBehind
+import androidx.compose.ui.graphics.Color
 import androidx.compose.ui.graphics.PathEffect
 import androidx.compose.ui.graphics.drawscope.Stroke
+import androidx.compose.ui.graphics.graphicsLayer
+import androidx.compose.ui.semantics.Role
 import androidx.compose.ui.semantics.semantics
 import androidx.compose.ui.semantics.stateDescription
 import androidx.compose.ui.tooling.preview.Preview
 import androidx.compose.ui.unit.dp
+import com.example.roadmap.ui.theme.MotionDurations
 import com.example.roadmap.ui.theme.RoadmapTheme
+import com.example.roadmap.ui.theme.rememberReduceMotion
 
+@OptIn(ExperimentalMaterial3Api::class)
 @Composable
 fun StepCheckbox(checked: Boolean, onToggle: () -> Unit, modifier: Modifier = Modifier) {
     val shape = RoundedCornerShape(7.dp)
-    Row(
-        modifier = modifier
-            .size(22.dp)
-            .clip(shape)
-            .then(
-                if (checked) Modifier.background(MaterialTheme.colorScheme.primary)
-                else Modifier.border(2.dp, MaterialTheme.colorScheme.outline, shape)
-            )
-            .clickable { onToggle() }
+    val reduce = rememberReduceMotion()
+    val bg by animateColorAsState(
+        if (checked) MaterialTheme.colorScheme.primary else Color.Transparent,
+        animationSpec = if (reduce) snap() else tween(MotionDurations.FAST),
+        label = "checkboxBg",
+    )
+    val checkScale by animateFloatAsState(
+        if (checked) 1f else 0f,
+        animationSpec = if (reduce) snap() else tween(MotionDurations.FAST),
+        label = "checkScale",
+    )
+    Box(
+        modifier
+            .minimumInteractiveComponentSize()
+            .toggleable(value = checked, role = Role.Checkbox, onValueChange = { onToggle() })
             .semantics { stateDescription = if (checked) "Completed" else "Not completed" },
-        verticalAlignment = Alignment.CenterVertically,
-        horizontalArrangement = Arrangement.Center,
+        contentAlignment = Alignment.Center,
     ) {
-        if (checked) {
-            Icon(Icons.Rounded.Check, null,
-                tint = MaterialTheme.colorScheme.onPrimary, modifier = Modifier.size(14.dp))
+        Box(
+            Modifier
+                .size(22.dp)
+                .clip(shape)
+                .background(bg)
+                .border(
+                    2.dp,
+                    if (checked) MaterialTheme.colorScheme.primary else MaterialTheme.colorScheme.outline,
+                    shape,
+                ),
+            contentAlignment = Alignment.Center,
+        ) {
+            Icon(
+                Icons.Rounded.Check, null,
+                tint = MaterialTheme.colorScheme.onPrimary,
+                modifier = Modifier
+                    .size(14.dp)
+                    .graphicsLayer { scaleX = checkScale; scaleY = checkScale; alpha = checkScale },
+            )
         }
     }
 }
 
 @Composable
 fun DragGrip(modifier: Modifier = Modifier) {
-    Icon(Icons.Rounded.DragIndicator, contentDescription = "Reorder",
-        tint = RoadmapTheme.colors.faint, modifier = modifier.size(18.dp))
+    Box(modifier.minimumInteractiveComponentSize(), contentAlignment = Alignment.Center) {
+        Icon(
+            Icons.Rounded.DragIndicator, contentDescription = "Reorder",
+            tint = RoadmapTheme.colors.faint, modifier = Modifier.size(18.dp),
+        )
+    }
 }
 
 @Composable
