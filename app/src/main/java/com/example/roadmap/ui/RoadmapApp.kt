@@ -30,7 +30,7 @@ import com.example.roadmap.data.RoadmapRepository
 import com.example.roadmap.data.ThemeMode
 import com.example.roadmap.data.journal.JournalRepository
 import com.example.roadmap.ui.detail.RoadmapDetailRoute
-import com.example.roadmap.ui.journal.DayEditorStub
+import com.example.roadmap.ui.journal.DayEditorRoute
 import com.example.roadmap.ui.journal.JournalRoute
 import com.example.roadmap.ui.list.RoadmapListRoute
 import com.example.roadmap.ui.list.RoadmapListViewModel
@@ -94,7 +94,7 @@ fun RoadmapApp(
                             if (d == null) {
                                 JournalRoute(journalRepository, onOpenDay = { journalEditorDay = it.toEpochDay() })
                             } else {
-                                DayEditorStub(d, onBack = { journalEditorDay = null })
+                                DayEditorRoute(journalRepository, d, onBack = { journalEditorDay = null })
                             }
                         }
                     }
