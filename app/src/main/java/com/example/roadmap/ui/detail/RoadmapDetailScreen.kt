@@ -18,6 +18,7 @@ import androidx.compose.foundation.lazy.rememberLazyListState
 import androidx.compose.material.icons.Icons
 import androidx.compose.material.icons.automirrored.rounded.ArrowBack
 import androidx.compose.material.icons.rounded.MoreVert
+import androidx.compose.material.icons.rounded.Share
 import androidx.compose.material3.DropdownMenu
 import androidx.compose.material3.DropdownMenuItem
 import androidx.compose.material3.ExperimentalMaterial3Api
@@ -68,6 +69,7 @@ import java.time.LocalDate
 
 class DetailCallbacks(
     val onBack: () -> Unit,
+    val onExport: () -> Unit,
     val onEditRoadmap: () -> Unit,
     val onArchive: () -> Unit,
     val onDeleteRoadmap: () -> Unit,
@@ -95,6 +97,9 @@ fun RoadmapDetailScreen(tree: RoadmapWithChildren, cb: DetailCallbacks, modifier
                 title = {},
                 navigationIcon = {
                     IconButton(cb.onBack) { Icon(Icons.AutoMirrored.Rounded.ArrowBack, "Back") }
+                },
+                actions = {
+                    IconButton(cb.onExport) { Icon(Icons.Rounded.Share, contentDescription = "Export") }
                 },
                 colors = TopAppBarDefaults.topAppBarColors(containerColor = MaterialTheme.colorScheme.surface),
             )
@@ -335,6 +340,7 @@ internal fun sampleTree(): RoadmapWithChildren {
 
 internal fun noopCallbacks() = DetailCallbacks(
     onBack = {},
+    onExport = {},
     onEditRoadmap = {},
     onArchive = {},
     onDeleteRoadmap = {},

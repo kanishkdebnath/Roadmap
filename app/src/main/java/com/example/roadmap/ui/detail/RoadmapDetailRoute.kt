@@ -1,6 +1,8 @@
 package com.example.roadmap.ui.detail
 
 import android.content.Intent
+import android.widget.Toast
+import com.example.roadmap.data.exportRoadmapJson
 import androidx.compose.foundation.layout.Box
 import androidx.compose.foundation.layout.fillMaxSize
 import androidx.compose.material3.CircularProgressIndicator
@@ -54,6 +56,10 @@ fun RoadmapDetailRoute(
         tree,
         DetailCallbacks(
             onBack = onBack,
+            onExport = {
+                runCatching { shareRoadmapJson(context, tree.roadmap.title, exportRoadmapJson(tree)) }
+                    .onFailure { Toast.makeText(context, "Couldn't export", Toast.LENGTH_SHORT).show() }
+            },
             onEditRoadmap = { dialog = DetailDialog.EditRoadmap },
             onArchive = { vm.setArchived(!tree.roadmap.archived) },
             onDeleteRoadmap = { dialog = DetailDialog.DeleteRoadmap },
