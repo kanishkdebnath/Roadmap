@@ -1,5 +1,8 @@
 package com.example.roadmap.ui.detail
 
+import androidx.compose.animation.animateColorAsState
+import androidx.compose.animation.core.snap
+import androidx.compose.animation.core.tween
 import androidx.compose.foundation.BorderStroke
 import androidx.compose.foundation.clickable
 import androidx.compose.foundation.layout.Arrangement
@@ -64,7 +67,9 @@ import com.example.roadmap.ui.components.RingSize
 import com.example.roadmap.ui.components.SecondaryButton
 import com.example.roadmap.ui.components.StepCheckbox
 import com.example.roadmap.ui.format.formatDeadline
+import com.example.roadmap.ui.theme.MotionDurations
 import com.example.roadmap.ui.theme.RoadmapTheme
+import com.example.roadmap.ui.theme.rememberReduceMotion
 import java.time.LocalDate
 
 class DetailCallbacks(
@@ -283,6 +288,12 @@ private fun MilestoneMenu(onEdit: () -> Unit, onDelete: () -> Unit) {
 
 @Composable
 private fun StepRow(s: StepWithLinks, cb: DetailCallbacks, dragHandle: Modifier) {
+    val reduce = rememberReduceMotion()
+    val titleColor by animateColorAsState(
+        if (s.step.completed) RoadmapTheme.colors.faint else MaterialTheme.colorScheme.onSurface,
+        animationSpec = if (reduce) snap() else tween(MotionDurations.FAST),
+        label = "stepTitle",
+    )
     Row(
         Modifier
             .fillMaxWidth()
@@ -297,7 +308,7 @@ private fun StepRow(s: StepWithLinks, cb: DetailCallbacks, dragHandle: Modifier)
             Text(
                 s.step.title,
                 style = MaterialTheme.typography.bodyMedium,
-                color = if (s.step.completed) RoadmapTheme.colors.faint else MaterialTheme.colorScheme.onSurface,
+                color = titleColor,
                 textDecoration = if (s.step.completed) TextDecoration.LineThrough else null,
                 overflow = TextOverflow.Ellipsis,
             )
