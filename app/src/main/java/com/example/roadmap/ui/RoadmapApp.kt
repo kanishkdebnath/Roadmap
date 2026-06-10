@@ -1,7 +1,9 @@
 package com.example.roadmap.ui
 
 import androidx.activity.compose.BackHandler
-import androidx.compose.foundation.layout.Box
+import androidx.compose.animation.Crossfade
+import androidx.compose.animation.core.snap
+import androidx.compose.animation.core.tween
 import androidx.compose.foundation.layout.BoxWithConstraints
 import androidx.compose.foundation.layout.Row
 import androidx.compose.foundation.layout.consumeWindowInsets
@@ -35,10 +37,14 @@ import com.example.roadmap.ui.journal.JournalRoute
 import com.example.roadmap.ui.list.RoadmapListRoute
 import com.example.roadmap.ui.list.RoadmapListViewModel
 import com.example.roadmap.ui.list.RoadmapListViewModelFactory
+import com.example.roadmap.ui.theme.MotionDurations
+import com.example.roadmap.ui.theme.rememberReduceMotion
 import java.time.LocalDate
 
 /** Top-level destinations. */
 enum class Tab { Roadmaps, Journal }
+
+private data class ScreenKey(val tab: Tab, val roadmapDetailId: Long?, val journalDay: Long?)
 
 @Composable
 fun RoadmapApp(
@@ -72,11 +78,16 @@ fun RoadmapApp(
                     .fillMaxSize(),
             ) {
                 if (wide && !inDetail) RoadmapNavRail(tab) { tab = it }
-                Box(Modifier.weight(1f).fillMaxHeight()) {
-                    when (tab) {
+                val reduce = rememberReduceMotion()
+                Crossfade(
+                    targetState = ScreenKey(tab, roadmapDetailId, journalEditorDay),
+                    animationSpec = if (reduce) snap() else tween(MotionDurations.MEDIUM),
+                    modifier = Modifier.weight(1f).fillMaxHeight(),
+                    label = "screen",
+                ) { key ->
+                    when (key.tab) {
                         Tab.Roadmaps -> {
-                            val id = roadmapDetailId
-                            if (id == null) {
+                            if (key.roadmapDetailId == null) {
                                 val listVm: RoadmapListViewModel =
                                     viewModel(factory = RoadmapListViewModelFactory(repository))
                                 RoadmapListRoute(
@@ -86,15 +97,14 @@ fun RoadmapApp(
                                     onSetThemeMode = onSetThemeMode,
                                 )
                             } else {
-                                RoadmapDetailRoute(repository, id, onBack = { roadmapDetailId = null })
+                                RoadmapDetailRoute(repository, key.roadmapDetailId, onBack = { roadmapDetailId = null })
                             }
                         }
                         Tab.Journal -> {
-                            val d = journalEditorDate
-                            if (d == null) {
+                            if (key.journalDay == null) {
                                 JournalRoute(journalRepository, onOpenDay = { journalEditorDay = it.toEpochDay() })
                             } else {
-                                DayEditorRoute(journalRepository, d, onBack = { journalEditorDay = null })
+                                DayEditorRoute(journalRepository, LocalDate.ofEpochDay(key.journalDay), onBack = { journalEditorDay = null })
                             }
                         }
                     }
